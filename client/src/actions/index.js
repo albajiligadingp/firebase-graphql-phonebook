@@ -1,10 +1,10 @@
-import axios from 'axios'
+import ApolloClient from 'apollo-boost';
+import gql from 'graphql-tag';
 
-const API_URL = 'http://localhost:4000/api/'
+const API_URL = 'http://localhost:4000/graphql/'
 
-const request = axios.create({
-    baseURL: API_URL,
-    timeout: 1000
+const client = new ApolloClient({
+    uri: API_URL
 });
 
 // Load Data Phonebook
@@ -18,11 +18,20 @@ export const loadPhonebookFailure = () => ({
 });
 
 export const loadPhonebook = () => {
+    const phonebooksQuery = gql`
+    query {
+        phonebooks{
+            id
+            name
+            phone
+        }
+    }`;
     return dispatch => {
-        return request
-            .get('phonebook')
+        return client.query({
+            query: phonebooksQuery
+        })
             .then(response => {
-                dispatch(loadPhonebookSuccess(response.data));
+                dispatch(loadPhonebookSuccess(response.data.phonebooks));
             })
             .catch(error => {
                 console.error(error);
@@ -51,10 +60,24 @@ const postPhonebookRedux = (id, name, phone) => ({
 
 export const postPhonebook = (name, phone) => {
     const id = Date.now();
+    const addQuery = gql`
+    mutation addPhonebook($id: ID!, $name: String!, $phone: String!) {
+        addPhonebook(id: $id, name: $name, phone: $phone) {
+            id
+            name
+            phone
+        }
+    }`;
     return dispatch => {
         dispatch(postPhonebookRedux(id, name, phone));
-        return request
-            .post('phonebook', { id, name, phone })
+        return client.mutate({
+            mutation: addQuery,
+            variables: {
+                id,
+                name,
+                phone
+            }
+        })
             .then(response => {
                 dispatch(postPhonebookSuccess(response.data));
             })
@@ -84,11 +107,24 @@ const putPhonebookRedux = (id, name, phone) => ({
 });
 
 export const putPhonebook = (id, name, phone) => {
-    console.log(id, name, phone);
+    const updateQuery = gql`
+    mutation updatePhonebook($id: ID!, $name: String!, $phone: String!){
+        updatePhonebook(id: $id, name: $name, phone: $phone){
+            id,
+            name,
+            phone
+        }
+    }`;
     return dispatch => {
         dispatch(putPhonebookRedux(id, name, phone));
-        return request
-            .put(`phonebook/${id}`, { name, phone })
+        return client.mutate({
+            mutation: updateQuery,
+            variables: {
+                id,
+                name,
+                phone
+            }
+        })        
             .then(response => {
                 dispatch(putPhonebookSuccess(response.data));
             })
@@ -114,10 +150,20 @@ export const deletePhonebookFailure = () => ({
 });
 
 export const deletePhonebook = id => {
+    const deleteQuery = gql`
+    mutation removePhonebook($id: ID!) {
+        removePhonebook(id: $id) {
+            id
+        }
+    }`;
     return dispatch => {
         dispatch(deletePhonebookRedux(id));
-        return request
-            .delete(`phonebook/${id}`)
+        return client.mutate({
+            mutation: deleteQuery,
+            variables: {
+                id
+            }
+        })
             .then(response => {
                 dispatch(deletePhonebookSuccess());
             })
@@ -138,9 +184,24 @@ export const resendPhonebookFailure = () => ({
     type: 'RESEND_PHONEBOOK_FAILURE'
 })
 
-export const resendPhonebook = (id, nama, umur) => {
+export const resendPhonebook = (id, name, phone) => {
+    const resendQuery = gql`
+    mutation resendPhonebook($id: ID!, $name: String!, $phone: String!) {
+        resendPhonebook(id: $id, name: $name, phone: $phone) {
+            id
+            name
+            phone
+        }
+    }`;
     return dispatch => {
-        return request.post('phonebook', { id, nama, umur })
+        return client.mutate({
+            mutation: resendQuery,
+            variables: {
+                id,
+                name,
+                phone
+            }
+        })
             .then(function (response) {
                 dispatch(resendPhonebookSuccess(id))
             })

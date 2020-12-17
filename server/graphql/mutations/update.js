@@ -1,4 +1,4 @@
-var { GraphQLNonNull, GraphQLString } = require('graphql')
+var { GraphQLNonNull, GraphQLString, GraphQLID } = require('graphql')
 var Phonebook = require('../types/phonebook');
 var services = require('../../services');
 
@@ -6,7 +6,7 @@ exports.update = {
   type: Phonebook.userType,
   args: {
     id: {
-      type: new GraphQLNonNull(GraphQLString),
+      type: new GraphQLNonNull(GraphQLID),
     },
     name: {
       type: new GraphQLNonNull(GraphQLString),
