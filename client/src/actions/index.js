@@ -175,19 +175,10 @@ export const deletePhonebook = id => {
 };
 
 // Resend Data Phonebook
-export const resendPhonebookSuccess = (id) => ({
-    type: 'RESEND_PHONEBOOK_SUCCESS',
-    id
-})
-
-export const resendPhonebookFailure = () => ({
-    type: 'RESEND_PHONEBOOK_FAILURE'
-})
-
 export const resendPhonebook = (id, name, phone) => {
-    const resendQuery = gql`
-    mutation resendPhonebook($id: ID!, $name: String!, $phone: String!) {
-        resendPhonebook(id: $id, name: $name, phone: $phone) {
+    const addQuery = gql`
+    mutation updatePhonebook($id: ID!, $name: String!, $phone: String!) {
+        updatePhonebook(id: $id, name: $name, phone: $phone) {
             id
             name
             phone
@@ -195,7 +186,7 @@ export const resendPhonebook = (id, name, phone) => {
     }`;
     return dispatch => {
         return client.mutate({
-            mutation: resendQuery,
+            mutation: addQuery,
             variables: {
                 id,
                 name,
@@ -203,11 +194,11 @@ export const resendPhonebook = (id, name, phone) => {
             }
         })
             .then(function (response) {
-                dispatch(resendPhonebookSuccess(id))
+                dispatch(postPhonebookSuccess(response))
             })
             .catch(function (error) {
                 console.error(error);
-                dispatch(resendPhonebookFailure())
+                dispatch(postPhonebookFailure(id))
             });
     }
 }
